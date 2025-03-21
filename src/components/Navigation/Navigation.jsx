@@ -1,29 +1,20 @@
+import { NavLink } from "react-router-dom";
 import css from "./Navigation.module.css";
+import clsx from "clsx";
+
+const linkStyle = ({ isActive }) => {
+  return clsx(css.link, isActive && css.active);
+};
 
 export default function Navigation() {
   return (
-    <div className={css.container}>
-      <h2 className={css.header}>Navigation</h2>
-    </div>
+    <nav className={css.nav}>
+      <NavLink to="/" className={linkStyle}>
+        Home
+      </NavLink>
+      <NavLink to="/movies" className={linkStyle}>
+        Movies
+      </NavLink>
+    </nav>
   );
 }
-
-// export default function UserTodos() {
-//   return (
-//     <div className={styles.container}>
-//       <h2 className={styles.header}>User Todos</h2>
-//       {/* <ul className={styles.list}>
-//                 {todos.map((todo) => (
-//                     <li
-//                         key={todo.id}
-//                         className={
-//                             todo.completed ? styles.completed : styles.pending
-//                         }
-//                     >
-//                         {todo.todo}
-//                     </li>
-//                 ))}
-//             </ul> */}
-//     </div>
-//   );
-// }
