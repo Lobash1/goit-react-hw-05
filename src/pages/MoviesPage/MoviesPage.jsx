@@ -12,7 +12,6 @@ export default function MoviesPage() {
   const [error, setError] = useState("");
 
   const [searchParams, setSearchParams] = useSearchParams();
-
   const [debouncedQuery] = useDebounce(query, 500);
 
   const fetchMovies = async (searchQuery) => {
@@ -34,7 +33,6 @@ export default function MoviesPage() {
       });
 
       setMovies(data.results);
-      setSearchParams({ query: searchQuery }); // Обновляем строку запроса в URL
     } catch {
       setError("Whooooooops!!!");
     } finally {
@@ -43,18 +41,19 @@ export default function MoviesPage() {
   };
 
   useEffect(() => {
-    // Получаем параметр 'query' из URL
     const queryParam = searchParams.get("query") || "";
-    setQuery(queryParam); // Обновляем состояние query
-    if (queryParam) {
-      fetchMovies(queryParam); // Если есть query, выполняем поиск
+    setQuery(queryParam);
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (debouncedQuery) {
+      fetchMovies(debouncedQuery);
+      setSearchParams({ query: debouncedQuery }); // Update query in URL after debounce
     }
-  }, [searchParams]); // Обновляем поисковый запрос, когда изменяется строка запроса
+  }, [debouncedQuery, setSearchParams]); // Only trigger after debounce
 
   const handleInputChange = (e) => {
-    const newQuery = e.target.value;
-    setQuery(newQuery);
-    setSearchParams({ query: newQuery }); // Обновляем query в URL при вводе
+    setQuery(e.target.value);
   };
 
   return (
