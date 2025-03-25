@@ -1,39 +1,45 @@
-// import { Link, useLocation } from "react-router";
+import { Link, useLocation } from "react-router-dom";
+import PropTypes from "prop-types";
 import css from "./MovieList.module.css";
 
-export default function MovieList() {
+export default function MovieList({ movies, searchQuery }) {
+  const location = useLocation();
+
   return (
-    <div>
+    <div className={css.movieList}>
       <ul className={css.list}>
-        <li>
-          <p>this MovieList</p>
-        </li>
+        {movies.map((movie) => (
+          <li key={movie.id} className={css.listItem}>
+            <Link
+              to={`/movies/${movie.id}`}
+              state={{ from: location, searchQuery }} // Сохраняем поисковый запрос в state
+              className={css.link}
+            >
+              <img
+                src={
+                  movie.poster_path
+                    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                    : "https://www.themoviedb.org/assets/2/v4/gfx/noposter-780a72594a0f66c2e4632836a01175d0.png"
+                }
+                alt={movie.title}
+                className={css.moviePoster}
+              />
+              <p className={css.movieTitle}>{movie.title}</p>
+            </Link>
+          </li>
+        ))}
       </ul>
     </div>
   );
 }
 
-// export default function UserList({ users }) {
-//   const location = useLocation();
-//   return (
-//     <ul className={css.list}>
-//       {users.map((user) => (
-//         <li key={user.id} className={css.listItem}>
-//           <h3 className={css.username}>
-//             {user.firstName} {user.lastName}
-//           </h3>
-//           <p className={css.text}>{user.email}</p>
-//           <p className={css.text}>{user.phone}</p>
-
-//           <Link
-//             to={`/dashboard/${user.id}`}
-//             className={css.link}
-//             state={location}
-//           >
-//             Details
-//           </Link>
-//         </li>
-//       ))}
-//     </ul>
-//   );
-// }
+MovieList.propTypes = {
+  movies: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      title: PropTypes.string.isRequired,
+      poster_path: PropTypes.string,
+    })
+  ).isRequired,
+  searchQuery: PropTypes.string.isRequired, // Передаем поисковый запрос
+};

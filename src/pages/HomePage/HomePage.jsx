@@ -4,47 +4,38 @@ import MovieList from "../../components/MovieList/MovieList";
 import css from "./HomePage.module.css";
 
 export default function HomePage() {
-  const [movie, setMovie] = useState([]);
+  const [movies, setMovie] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const apiKey = "350ef846f44a2e48a29e4a08670318df";
+  const apiUrl = "https://api.themoviedb.org/3/movie/popular";
 
   useEffect(() => {
-    const fetchTrendingMovies = async () => {
-      try {
-        const response = await axios.get(
-          "https://api.themoviedb.org/3/trending/movie/day",
-          {
-            headers: {
-              // Замість api_read_access_token вставте свій токен
-              Authorization: "Bearer api_read_access_token",
-            },
-          }
-        );
+    axios
+      .get(apiUrl, {
+        params: {
+          api_key: apiKey,
+          language: "en-US",
+          page: 1,
+        },
+      })
+      .then((response) => {
         setMovie(response.data.results);
-      } catch (error) {
-        console.error("Failed to fetch trending movies:", error);
-      }
-    };
-
-    fetchTrendingMovies();
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err.message);
+        setLoading(false);
+      });
   }, []);
+  if (loading) return <p>Завантаження...</p>;
+  if (error) return <p>{error}</p>;
 
   return (
     <div className={css.container}>
       <h1 className={css.title}>Trending Today</h1>
-      <MovieList movies={movie} />
+      <MovieList movies={movies} />
     </div>
   );
 }
-
-// const url = "https://api.themoviedb.org/3/trending/movie/day";
-
-// const options = {
-//   headers: {
-//     // Замість api_read_access_token вставте свій токен
-//     Authorization: "Bearer api_read_access_token",
-//   },
-// };
-
-// axios
-//   .get(url, options)
-//   .then((response) => console.log(response))
-//   .catch((err) => console.error(err));

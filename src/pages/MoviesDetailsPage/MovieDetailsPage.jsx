@@ -1,65 +1,98 @@
+import { useEffect, useState, useRef } from "react";
+import { useNavigate, useParams, useLocation, Outlet } from "react-router-dom";
+import axios from "axios";
+import { Link } from "react-router-dom";
+import css from "./MoviesDetailsPage.module.css";
+
 export default function MovieDetailsPage() {
+  const [movie, setMovie] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const { movieId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Получаем поисковый запрос из state
+  const searchQuery = location.state?.searchQuery || "";
+
+  // Сохраняем путь назад
+  const backLink = useRef(location.state?.from ?? "/movies");
+
+  useEffect(() => {
+    const fetchMovieDetails = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const apiKey = "350ef846f44a2e48a29e4a08670318df";
+        const apiUrl = `https://api.themoviedb.org/3/movie/${movieId}`;
+
+        const { data } = await axios.get(apiUrl, {
+          params: {
+            api_key: apiKey,
+            language: "en-US",
+          },
+        });
+
+        setMovie(data);
+      } catch {
+        setError("Failed to fetch movie details. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMovieDetails();
+  }, [movieId]);
+
+  const handleGoBack = () => {
+    // Передаем поисковый запрос назад через state
+    navigate(backLink.current, { state: { searchQuery } });
+  };
+
   return (
-    <div>
-      <h2>this is MovieDetailsPage</h2>
+    <div className={css.movieDetailsPage}>
+      <button onClick={handleGoBack} className={css.goBackBtn}>
+        Go Back
+      </button>
+      {loading && <p>Loading movie details...</p>}
+      {error && <p className={css.error}>{error}</p>}
+
+      {movie && (
+        <>
+          <div className={css.movieDetails}>
+            <img
+              src={
+                movie.poster_path
+                  ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                  : "https://www.themoviedb.org/assets/2/v4/gfx/noposter-780a72594a0f66c2e4632836a01175d0.png"
+              }
+              alt={movie.title}
+              className={css.poster}
+            />
+            <div className={css.details}>
+              <h2 className={css.title}>{movie.title}</h2>
+              <p className={css.releaseDate}>{movie.release_date}</p>
+              <p className={css.overview}>{movie.overview}</p>
+            </div>
+          </div>
+
+          {/* Блок с доп. информацией (Cast, Reviews) */}
+          <div className={css.additionalInfo}>
+            <h3>Additional Information</h3>
+            <ul className={css.navLinks}>
+              <li>
+                <Link to="cast">Cast</Link>
+              </li>
+              <li>
+                <Link to="reviews">Reviews</Link>
+              </li>
+            </ul>
+          </div>
+
+          <Outlet />
+        </>
+      )}
     </div>
   );
 }
-
-// import { useEffect, useRef, useState } from "react";
-// import {
-//   Link,
-//   NavLink,
-//   Outlet,
-//   useLocation,
-//   useParams,
-// } from "react-router-dom";
-// import { fetchUserById } from "../userService";
-// import UserInfo from "../components/UserInfo/UserInfo";
-
-// export default function UserDetailsPage() {
-//   const { userId } = useParams();
-//   const [user, setUser] = useState(null);
-//   const [isLoading, setIsLoading] = useState(false);
-//   const [error, setError] = useState(false);
-
-//   const location = useLocation();
-//   const backLinkHref = useRef(location.state);
-
-//   useEffect(() => {
-//     async function getUsers() {
-//       try {
-//         setIsLoading(true);
-//         setError(false);
-//         const data = await fetchUserById(userId);
-//         setUser(data);
-//       } catch {
-//         setError(true);
-//       } finally {
-//         setIsLoading(false);
-//       }
-//     }
-
-//     getUsers();
-//   }, [userId]);
-
-//   return (
-//     <div>
-//       <Link to={backLinkHref.current}>GO bACK</Link>
-
-//       {isLoading && <b> Loading.....</b>}
-//       {error && <b> Error.....</b>}
-//       {user && <UserInfo user={user} />}
-
-//       <ul>
-//         <li>
-//           <NavLink to="posts">Posts</NavLink>
-//         </li>
-//         <li>
-//           <NavLink to="todos">Todos</NavLink>
-//         </li>
-//       </ul>
-//       <Outlet />
-//     </div>
-//   );
-// }

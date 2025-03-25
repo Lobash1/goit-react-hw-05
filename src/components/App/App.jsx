@@ -2,6 +2,9 @@ import { Route, Routes } from "react-router-dom";
 import css from "./App.module.css";
 import { lazy, Suspense } from "react";
 import Navigation from "../Navigation/Navigation";
+import MovieReviews from "../MovieReviews/MovieReviews";
+import MovieCast from "../MovieCast/MovieCast";
+// import Layout from "./components/Layout/Layout";
 
 const HomePage = lazy(() => import("../../pages/HomePage/HomePage"));
 const MoviesPage = lazy(() => import("../../pages/MoviesPage/MoviesPage"));
@@ -21,22 +24,13 @@ export default function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/movies" element={<MoviesPage />} />
-          <Route path="/movies/:movieId" element={<MovieDetailsPage />} />
+          <Route path="/movies/:movieId" element={<MovieDetailsPage />}>
+            <Route path="cast" element={<MovieCast />} />
+            <Route path="reviews" element={<MovieReviews />} />
+          </Route>
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
     </div>
   );
 }
-
-// // HomePage
-
-// MoviesPage →
-// MovieDetailsPage →
-// MovieCast →
-// MovieReviews →
-// NotFoundPage →
-// API-запити →
-// Go back →
-// стилізація →
-// деплой.

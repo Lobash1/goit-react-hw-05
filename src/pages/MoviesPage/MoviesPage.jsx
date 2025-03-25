@@ -1,63 +1,75 @@
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import MovieList from "../../components/MovieList/MovieList";
+import css from "./MoviesPage.module.css";
+import axios from "axios";
+import { useDebounce } from "use-debounce";
+
 export default function MoviesPage() {
+  const [movies, setMovies] = useState([]);
+  const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [debouncedQuery] = useDebounce(query, 500);
+
+  const fetchMovies = async (searchQuery) => {
+    if (!searchQuery.trim()) return;
+    setLoading(true);
+    setError("");
+
+    try {
+      const apiKey = "350ef846f44a2e48a29e4a08670318df";
+      const apiUrl = `https://api.themoviedb.org/3/search/movie`;
+
+      const { data } = await axios.get(apiUrl, {
+        params: {
+          api_key: apiKey,
+          query: searchQuery,
+          language: "en-US",
+          page: 1,
+        },
+      });
+
+      setMovies(data.results);
+      setSearchParams({ query: searchQuery }); // Обновляем строку запроса в URL
+    } catch {
+      setError("Whooooooops!!!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Получаем параметр 'query' из URL
+    const queryParam = searchParams.get("query") || "";
+    setQuery(queryParam); // Обновляем состояние query
+    if (queryParam) {
+      fetchMovies(queryParam); // Если есть query, выполняем поиск
+    }
+  }, [searchParams]); // Обновляем поисковый запрос, когда изменяется строка запроса
+
+  const handleInputChange = (e) => {
+    const newQuery = e.target.value;
+    setQuery(newQuery);
+    setSearchParams({ query: newQuery }); // Обновляем query в URL при вводе
+  };
+
   return (
-    <div>
-      <h2>this is MoviesPage</h2>
+    <div className={css.moviesPage}>
+      <h2 className={css.title}>Search for Movies</h2>
+      <input
+        type="text"
+        value={query}
+        onChange={handleInputChange}
+        className={css.searchInput}
+        placeholder="Search by movie title..."
+      />
+      {loading && <b>Loading movies...</b>}
+      {error && <b>{error}</b>}
+      {movies.length > 0 && <MovieList movies={movies} />}
     </div>
   );
 }
-
-// import { useEffect, useState } from "react";
-// import { fetchUsers } from "../userService";
-// import UserList from "../components/UserList/UserList";
-// import { useSearchParams } from "react-router-dom";
-// import { useDebounce } from "use-debounce";
-
-// export default function UsersPages() {
-//   const [users, setUsers] = useState([]);
-//   const [loading, setLoading] = useState(false);
-//   const [error, setError] = useState(false);
-
-//   const [searchParams, setSearchParams] = useSearchParams();
-//   const query = searchParams.get("query") ?? "";
-
-//   const [debaunceQuery] = useDebounce(query, 300);
-
-//   const changeSearchText = (event) => {
-//     const nextParams = new URLSearchParams(searchParams);
-
-//     if (event.target.value !== "") {
-//       nextParams.set("query", event.target.value);
-//     } else {
-//       nextParams.delete("query");
-//     }
-
-//     setSearchParams(nextParams);
-//   };
-
-//   useEffect(() => {
-//     async function getUsers() {
-//       try {
-//         setLoading(true);
-//         setError(false);
-//         const data = await fetchUsers(debaunceQuery);
-//         setUsers(data);
-//       } catch {
-//         setError(true);
-//       } finally {
-//         setLoading(false);
-//       }
-//     }
-
-//     getUsers();
-//   }, [debaunceQuery]);
-
-//   return (
-//     <div>
-//       <input type="text" value={query} onChange={changeSearchText} />
-//       <h1>Users admin</h1>
-//       {loading && <b>Loading users...</b>}
-//       {error && <b>Whoops there was an Error, plz reload the page...</b>}
-//       {users.length > 0 && <UserList users={users} />}
-//     </div>
-//   );
-// }
